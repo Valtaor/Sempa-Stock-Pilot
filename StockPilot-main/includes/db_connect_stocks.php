@@ -370,5 +370,25 @@ if (!class_exists('Sempa_Stocks_DB')) {
 
             return $columns;
         }
+
+        /**
+         * Retourne le host de la base de données
+         *
+         * @return string Host de la base de données
+         */
+        public static function get_host(): string
+        {
+            return self::DB_HOST;
+        }
+
+        /**
+         * Retourne le nom de la base de données
+         *
+         * @return string Nom de la base de données
+         */
+        public static function get_database(): string
+        {
+            return self::DB_NAME;
+        }
     }
 }

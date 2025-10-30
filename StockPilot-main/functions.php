@@ -38,6 +38,11 @@ if (file_exists($file_integrity)) {
     require_once $file_integrity;
 }
 
+$healthcheck_file = __DIR__ . '/includes/healthcheck.php';
+if (file_exists($healthcheck_file)) {
+    require_once $healthcheck_file;
+}
+
 
 // ===========================================
 // 2. DÉFINITION DES CLASSES PRINCIPALES
