@@ -988,7 +988,7 @@ final class Sempa_Stocks_Login
 
     public static function login_url()
     {
-        return home_url('/stocks');
+        return home_url('/stock-pilot');
     }
 
     public static function login_title()
@@ -1014,17 +1014,29 @@ final class Sempa_Login_Redirect
     }
 
     /**
-     * Redirige /stock-pilot vers /stocks
+     * Redirige l'ancienne URL /stocks vers la nouvelle /stock-pilot
      * Corrige le problème de redirection pour les ayants droits
      */
     public static function handle_stock_pilot_redirect()
     {
-        global $wp;
-        $current_path = trim($wp->request, '/');
+        // Récupérer l'URI de la requête
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
 
-        // Rediriger stock-pilot vers stocks
-        if ($current_path === 'stock-pilot') {
-            wp_safe_redirect(home_url('/stocks/'), 301);
+        // Nettoyer l'URI (enlever les query strings)
+        $path = parse_url($request_uri, PHP_URL_PATH);
+
+        // Normaliser le chemin (enlever les slashes de début et fin)
+        $path = trim($path, '/');
+
+        // Rediriger l'ancienne URL /stocks vers la nouvelle /stock-pilot
+        if ($path === 'stocks' || strpos($path, 'stocks/') === 0) {
+            wp_safe_redirect(home_url('/stock-pilot/'), 301);
+            exit;
+        }
+
+        // Alternative : vérifier aussi si WordPress détecte la page stocks
+        if (is_page('stocks')) {
+            wp_safe_redirect(home_url('/stock-pilot/'), 301);
             exit;
         }
     }
@@ -1046,8 +1058,8 @@ final class Sempa_Login_Redirect
 
         // Vérifier si l'utilisateur a les permissions pour gérer les stocks
         if (self::user_can_manage_stock($user)) {
-            // Rediriger vers la page de stocks
-            return home_url('/stocks/');
+            // Rediriger vers la page stock-pilot
+            return home_url('/stock-pilot/');
         }
 
         return $redirect_to;
