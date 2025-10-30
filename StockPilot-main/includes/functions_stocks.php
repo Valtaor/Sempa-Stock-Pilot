@@ -1019,13 +1019,30 @@ final class Sempa_Login_Redirect
      */
     public static function handle_stock_pilot_redirect()
     {
-        global $wp;
-        $current_path = trim($wp->request, '/');
+        // Récupérer l'URI de la requête
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
 
-        // Rediriger stock-pilot vers stocks
-        if ($current_path === 'stock-pilot') {
+        // Nettoyer l'URI (enlever les query strings)
+        $path = parse_url($request_uri, PHP_URL_PATH);
+
+        // Normaliser le chemin (enlever les slashes de début et fin)
+        $path = trim($path, '/');
+
+        // Vérifier si c'est la page stock-pilot (avec ou sans trailing slash)
+        if ($path === 'stock-pilot' || strpos($path, 'stock-pilot/') === 0) {
             wp_safe_redirect(home_url('/stocks/'), 301);
             exit;
+        }
+
+        // Alternative : vérifier aussi si WordPress détecte une 404 pour stock-pilot
+        if (is_404()) {
+            global $wp_query;
+            $pagename = get_query_var('pagename');
+
+            if ($pagename === 'stock-pilot') {
+                wp_safe_redirect(home_url('/stocks/'), 301);
+                exit;
+            }
         }
     }
 
