@@ -88,9 +88,26 @@ final class Sempa_Stocks_App
         ]);
     }
 
+    /**
+     * Vérifie que la connexion à la base de données est active
+     * Retourne une erreur JSON si la connexion a échoué
+     *
+     * @return void (termine l'exécution si connexion échouée)
+     */
+    private static function ensure_database_connected()
+    {
+        if (!Sempa_Stocks_DB::is_connected()) {
+            wp_send_json_error([
+                'message' => __('La connexion à la base de données est temporairement indisponible. Veuillez réessayer dans quelques instants.', 'sempa'),
+                'code' => 'DB_CONNECTION_FAILED',
+            ], 503);
+        }
+    }
+
     public static function ajax_dashboard()
     {
         self::ensure_secure_request();
+        self::ensure_database_connected();
 
         $db = Sempa_Stocks_DB::instance();
         $totals = (object) [
@@ -184,6 +201,7 @@ final class Sempa_Stocks_App
     public static function ajax_products()
     {
         self::ensure_secure_request();
+        self::ensure_database_connected();
 
         $db = Sempa_Stocks_DB::instance();
         $products = [];
@@ -207,6 +225,7 @@ final class Sempa_Stocks_App
     public static function ajax_save_product()
     {
         self::ensure_secure_request();
+        self::ensure_database_connected();
 
         $data = self::read_request_body();
         $db = Sempa_Stocks_DB::instance();
@@ -300,6 +319,7 @@ final class Sempa_Stocks_App
     public static function ajax_delete_product()
     {
         self::ensure_secure_request();
+        self::ensure_database_connected();
 
         $id = isset($_POST['id']) ? absint($_POST['id']) : 0;
         if ($id <= 0) {
@@ -334,6 +354,7 @@ final class Sempa_Stocks_App
     public static function ajax_movements()
     {
         self::ensure_secure_request();
+        self::ensure_database_connected();
 
         $db = Sempa_Stocks_DB::instance();
         $movements = [];
@@ -381,6 +402,7 @@ final class Sempa_Stocks_App
     public static function ajax_record_movement()
     {
         self::ensure_secure_request();
+        self::ensure_database_connected();
 
         $data = self::read_request_body();
         $product_id = isset($data['produit_id']) ? absint($data['produit_id']) : 0;
@@ -509,6 +531,7 @@ final class Sempa_Stocks_App
     public static function ajax_export_csv()
     {
         self::ensure_secure_request();
+        self::ensure_database_connected();
 
         self::stream_csv_export();
     }
@@ -581,6 +604,7 @@ final class Sempa_Stocks_App
     public static function ajax_reference_data()
     {
         self::ensure_secure_request();
+        self::ensure_database_connected();
 
         $db = Sempa_Stocks_DB::instance();
         $categories = [];
@@ -617,6 +641,7 @@ final class Sempa_Stocks_App
     public static function ajax_save_category()
     {
         self::ensure_secure_request();
+        self::ensure_database_connected();
         $name = isset($_POST['nom']) ? sanitize_text_field(wp_unslash($_POST['nom'])) : '';
         $color_input = $_POST['couleur'] ?? '#f4a412';
         $color = sanitize_hex_color($color_input);
@@ -669,6 +694,7 @@ final class Sempa_Stocks_App
     public static function ajax_save_supplier()
     {
         self::ensure_secure_request();
+        self::ensure_database_connected();
 
         $data = self::read_request_body();
         $name = sanitize_text_field($data['nom'] ?? '');
