@@ -41,6 +41,7 @@ if (!class_exists('Sempa_Stocks_DB')) {
                 'document_pdf' => ['document_pdf', 'document', 'document_url', 'imageUrl'],
                 'ajoute_par' => ['ajoute_par', 'added_by', 'created_by'],
                 'prix_achat_total' => ['prix_achat_total', 'total_purchase'],
+                'etat_materiel' => ['etat_materiel', 'material_state', 'condition'],
             ],
             'mouvements_stocks_sempa' => [
                 'id' => ['id'],

@@ -227,6 +227,7 @@ final class Sempa_Stocks_App
             'designation' => sanitize_text_field($data['designation'] ?? ''),
             'categorie' => sanitize_text_field($data['categorie'] ?? ''),
             'fournisseur' => sanitize_text_field($data['fournisseur'] ?? ''),
+            'etat_materiel' => in_array($data['etat_materiel'] ?? '', ['neuf', 'reconditionné'], true) ? $data['etat_materiel'] : 'neuf',
             'prix_achat' => self::sanitize_decimal($data['prix_achat'] ?? 0),
             'prix_vente' => self::sanitize_decimal($data['prix_vente'] ?? 0),
             'stock_actuel' => isset($data['stock_actuel']) ? (int) $data['stock_actuel'] : 0,
@@ -830,6 +831,7 @@ final class Sempa_Stocks_App
             'designation' => (string) Sempa_Stocks_DB::value($product, 'stocks_sempa', 'designation', ''),
             'categorie' => (string) Sempa_Stocks_DB::value($product, 'stocks_sempa', 'categorie', ''),
             'fournisseur' => (string) Sempa_Stocks_DB::value($product, 'stocks_sempa', 'fournisseur', ''),
+            'etat_materiel' => (string) Sempa_Stocks_DB::value($product, 'stocks_sempa', 'etat_materiel', 'neuf'),
             'prix_achat' => (float) Sempa_Stocks_DB::value($product, 'stocks_sempa', 'prix_achat', 0),
             'prix_vente' => (float) Sempa_Stocks_DB::value($product, 'stocks_sempa', 'prix_vente', 0),
             'stock_actuel' => (int) Sempa_Stocks_DB::value($product, 'stocks_sempa', 'stock_actuel', 0),
@@ -966,5 +968,87 @@ final class Sempa_Stocks_Login
     public static function login_title()
     {
         return 'SEMPA';
+    }
+}
+
+/**
+ * Gère les redirections pour l'accès à l'application de gestion des stocks
+ *
+ * @since 2.0.0
+ */
+final class Sempa_Login_Redirect
+{
+    /**
+     * Enregistre les hooks nécessaires pour gérer les redirections
+     */
+    public static function register()
+    {
+        add_action('template_redirect', [__CLASS__, 'handle_stock_pilot_redirect']);
+        add_filter('login_redirect', [__CLASS__, 'redirect_after_login'], 10, 3);
+    }
+
+    /**
+     * Redirige /stock-pilot vers /stocks
+     * Corrige le problème de redirection pour les ayants droits
+     */
+    public static function handle_stock_pilot_redirect()
+    {
+        global $wp;
+        $current_path = trim($wp->request, '/');
+
+        // Rediriger stock-pilot vers stocks
+        if ($current_path === 'stock-pilot') {
+            wp_safe_redirect(home_url('/stocks/'), 301);
+            exit;
+        }
+    }
+
+    /**
+     * Redirige les utilisateurs autorisés vers la page de stocks après connexion
+     *
+     * @param string $redirect_to URL de redirection
+     * @param string $request URL demandée
+     * @param WP_User|WP_Error $user Utilisateur connecté
+     * @return string URL de redirection finale
+     */
+    public static function redirect_after_login($redirect_to, $request, $user)
+    {
+        // Si l'utilisateur n'est pas valide, ne pas modifier la redirection
+        if (!($user instanceof WP_User) || !$user->exists()) {
+            return $redirect_to;
+        }
+
+        // Vérifier si l'utilisateur a les permissions pour gérer les stocks
+        if (self::user_can_manage_stock($user)) {
+            // Rediriger vers la page de stocks
+            return home_url('/stocks/');
+        }
+
+        return $redirect_to;
+    }
+
+    /**
+     * Vérifie si l'utilisateur peut gérer les stocks
+     *
+     * @param WP_User $user Utilisateur à vérifier
+     * @return bool True si l'utilisateur peut gérer les stocks
+     */
+    private static function user_can_manage_stock($user)
+    {
+        if (!($user instanceof WP_User)) {
+            return false;
+        }
+
+        // Administrateur ou gestionnaire de stock
+        if (user_can($user, 'manage_options') || user_can($user, 'manage_sempa_stock')) {
+            return true;
+        }
+
+        // Rôle spécifique gestionnaire de stock
+        if (in_array('gestionnaire_de_stock', (array) $user->roles, true)) {
+            return true;
+        }
+
+        return false;
     }
 }

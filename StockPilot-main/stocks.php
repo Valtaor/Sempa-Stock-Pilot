@@ -356,6 +356,13 @@ if ($current_user instanceof WP_User && $current_user->exists()) {
                                     </div>
                                 </label>
                                 <label>
+                                    <span><?php esc_html_e('État du matériel', 'sempa'); ?> *</span>
+                                    <select name="etat_materiel" required>
+                                        <option value="neuf"><?php esc_html_e('Neuf', 'sempa'); ?></option>
+                                        <option value="reconditionné"><?php esc_html_e('Reconditionné', 'sempa'); ?></option>
+                                    </select>
+                                </label>
+                                <label>
                                     <span><?php esc_html_e('Prix d\'achat (€)', 'sempa'); ?></span>
                                     <input type="number" name="prix_achat" step="0.01" min="0" />
                                 </label>

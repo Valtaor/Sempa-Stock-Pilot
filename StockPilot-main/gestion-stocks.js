@@ -726,6 +726,7 @@
             productForm.querySelector('[name="designation"]').value = product.designation || '';
             productForm.querySelector('[name="categorie"]').value = product.categorie || '';
             productForm.querySelector('[name="fournisseur"]').value = product.fournisseur || '';
+            productForm.querySelector('[name="etat_materiel"]').value = product.etat_materiel || 'neuf';
             productForm.querySelector('[name="prix_achat"]').value = product.prix_achat || '';
             productForm.querySelector('[name="prix_vente"]').value = product.prix_vente || '';
             productForm.querySelector('[name="stock_actuel"]').value = product.stock_actuel || 0;

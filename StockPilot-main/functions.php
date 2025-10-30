@@ -33,6 +33,11 @@ if (file_exists($db_commandes_file)) {
     require_once $db_commandes_file;
 }
 
+$file_integrity = __DIR__ . '/includes/file-integrity.php';
+if (file_exists($file_integrity)) {
+    require_once $file_integrity;
+}
+
 
 // ===========================================
 // 2. DÉFINITION DES CLASSES PRINCIPALES
