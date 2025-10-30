@@ -43,6 +43,12 @@ if (file_exists($healthcheck_file)) {
     require_once $healthcheck_file;
 }
 
+// Charger les nouveaux assets de la refonte (Phase 1)
+$enqueue_assets_file = __DIR__ . '/includes/enqueue-assets.php';
+if (file_exists($enqueue_assets_file)) {
+    require_once $enqueue_assets_file;
+}
+
 
 // ===========================================
 // 2. DÉFINITION DES CLASSES PRINCIPALES
