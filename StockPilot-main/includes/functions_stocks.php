@@ -88,9 +88,26 @@ final class Sempa_Stocks_App
         ]);
     }
 
+    /**
+     * Vérifie que la connexion à la base de données est active
+     * Retourne une erreur JSON si la connexion a échoué
+     *
+     * @return void (termine l'exécution si connexion échouée)
+     */
+    private static function ensure_database_connected()
+    {
+        if (!Sempa_Stocks_DB::is_connected()) {
+            wp_send_json_error([
+                'message' => __('La connexion à la base de données est temporairement indisponible. Veuillez réessayer dans quelques instants.', 'sempa'),
+                'code' => 'DB_CONNECTION_FAILED',
+            ], 503);
+        }
+    }
+
     public static function ajax_dashboard()
     {
         self::ensure_secure_request();
+        self::ensure_database_connected();
 
         $db = Sempa_Stocks_DB::instance();
         $totals = (object) [
@@ -184,6 +201,7 @@ final class Sempa_Stocks_App
     public static function ajax_products()
     {
         self::ensure_secure_request();
+        self::ensure_database_connected();
 
         $db = Sempa_Stocks_DB::instance();
         $products = [];
@@ -207,6 +225,7 @@ final class Sempa_Stocks_App
     public static function ajax_save_product()
     {
         self::ensure_secure_request();
+        self::ensure_database_connected();
 
         $data = self::read_request_body();
         $db = Sempa_Stocks_DB::instance();
@@ -227,6 +246,7 @@ final class Sempa_Stocks_App
             'designation' => sanitize_text_field($data['designation'] ?? ''),
             'categorie' => sanitize_text_field($data['categorie'] ?? ''),
             'fournisseur' => sanitize_text_field($data['fournisseur'] ?? ''),
+            'etat_materiel' => in_array($data['etat_materiel'] ?? '', ['neuf', 'reconditionné'], true) ? $data['etat_materiel'] : 'neuf',
             'prix_achat' => self::sanitize_decimal($data['prix_achat'] ?? 0),
             'prix_vente' => self::sanitize_decimal($data['prix_vente'] ?? 0),
             'stock_actuel' => isset($data['stock_actuel']) ? (int) $data['stock_actuel'] : 0,
@@ -299,6 +319,7 @@ final class Sempa_Stocks_App
     public static function ajax_delete_product()
     {
         self::ensure_secure_request();
+        self::ensure_database_connected();
 
         $id = isset($_POST['id']) ? absint($_POST['id']) : 0;
         if ($id <= 0) {
@@ -333,6 +354,7 @@ final class Sempa_Stocks_App
     public static function ajax_movements()
     {
         self::ensure_secure_request();
+        self::ensure_database_connected();
 
         $db = Sempa_Stocks_DB::instance();
         $movements = [];
@@ -380,6 +402,7 @@ final class Sempa_Stocks_App
     public static function ajax_record_movement()
     {
         self::ensure_secure_request();
+        self::ensure_database_connected();
 
         $data = self::read_request_body();
         $product_id = isset($data['produit_id']) ? absint($data['produit_id']) : 0;
@@ -508,6 +531,7 @@ final class Sempa_Stocks_App
     public static function ajax_export_csv()
     {
         self::ensure_secure_request();
+        self::ensure_database_connected();
 
         self::stream_csv_export();
     }
@@ -580,6 +604,7 @@ final class Sempa_Stocks_App
     public static function ajax_reference_data()
     {
         self::ensure_secure_request();
+        self::ensure_database_connected();
 
         $db = Sempa_Stocks_DB::instance();
         $categories = [];
@@ -616,6 +641,7 @@ final class Sempa_Stocks_App
     public static function ajax_save_category()
     {
         self::ensure_secure_request();
+        self::ensure_database_connected();
         $name = isset($_POST['nom']) ? sanitize_text_field(wp_unslash($_POST['nom'])) : '';
         $color_input = $_POST['couleur'] ?? '#f4a412';
         $color = sanitize_hex_color($color_input);
@@ -668,6 +694,7 @@ final class Sempa_Stocks_App
     public static function ajax_save_supplier()
     {
         self::ensure_secure_request();
+        self::ensure_database_connected();
 
         $data = self::read_request_body();
         $name = sanitize_text_field($data['nom'] ?? '');
@@ -830,6 +857,7 @@ final class Sempa_Stocks_App
             'designation' => (string) Sempa_Stocks_DB::value($product, 'stocks_sempa', 'designation', ''),
             'categorie' => (string) Sempa_Stocks_DB::value($product, 'stocks_sempa', 'categorie', ''),
             'fournisseur' => (string) Sempa_Stocks_DB::value($product, 'stocks_sempa', 'fournisseur', ''),
+            'etat_materiel' => (string) Sempa_Stocks_DB::value($product, 'stocks_sempa', 'etat_materiel', 'neuf'),
             'prix_achat' => (float) Sempa_Stocks_DB::value($product, 'stocks_sempa', 'prix_achat', 0),
             'prix_vente' => (float) Sempa_Stocks_DB::value($product, 'stocks_sempa', 'prix_vente', 0),
             'stock_actuel' => (int) Sempa_Stocks_DB::value($product, 'stocks_sempa', 'stock_actuel', 0),
@@ -966,5 +994,87 @@ final class Sempa_Stocks_Login
     public static function login_title()
     {
         return 'SEMPA';
+    }
+}
+
+/**
+ * Gère les redirections pour l'accès à l'application de gestion des stocks
+ *
+ * @since 2.0.0
+ */
+final class Sempa_Login_Redirect
+{
+    /**
+     * Enregistre les hooks nécessaires pour gérer les redirections
+     */
+    public static function register()
+    {
+        add_action('template_redirect', [__CLASS__, 'handle_stock_pilot_redirect']);
+        add_filter('login_redirect', [__CLASS__, 'redirect_after_login'], 10, 3);
+    }
+
+    /**
+     * Redirige /stock-pilot vers /stocks
+     * Corrige le problème de redirection pour les ayants droits
+     */
+    public static function handle_stock_pilot_redirect()
+    {
+        global $wp;
+        $current_path = trim($wp->request, '/');
+
+        // Rediriger stock-pilot vers stocks
+        if ($current_path === 'stock-pilot') {
+            wp_safe_redirect(home_url('/stocks/'), 301);
+            exit;
+        }
+    }
+
+    /**
+     * Redirige les utilisateurs autorisés vers la page de stocks après connexion
+     *
+     * @param string $redirect_to URL de redirection
+     * @param string $request URL demandée
+     * @param WP_User|WP_Error $user Utilisateur connecté
+     * @return string URL de redirection finale
+     */
+    public static function redirect_after_login($redirect_to, $request, $user)
+    {
+        // Si l'utilisateur n'est pas valide, ne pas modifier la redirection
+        if (!($user instanceof WP_User) || !$user->exists()) {
+            return $redirect_to;
+        }
+
+        // Vérifier si l'utilisateur a les permissions pour gérer les stocks
+        if (self::user_can_manage_stock($user)) {
+            // Rediriger vers la page de stocks
+            return home_url('/stocks/');
+        }
+
+        return $redirect_to;
+    }
+
+    /**
+     * Vérifie si l'utilisateur peut gérer les stocks
+     *
+     * @param WP_User $user Utilisateur à vérifier
+     * @return bool True si l'utilisateur peut gérer les stocks
+     */
+    private static function user_can_manage_stock($user)
+    {
+        if (!($user instanceof WP_User)) {
+            return false;
+        }
+
+        // Administrateur ou gestionnaire de stock
+        if (user_can($user, 'manage_options') || user_can($user, 'manage_sempa_stock')) {
+            return true;
+        }
+
+        // Rôle spécifique gestionnaire de stock
+        if (in_array('gestionnaire_de_stock', (array) $user->roles, true)) {
+            return true;
+        }
+
+        return false;
     }
 }

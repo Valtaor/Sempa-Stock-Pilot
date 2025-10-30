@@ -15,6 +15,7 @@ if (!class_exists('Sempa_Stocks_Schema_Setup')) {
             try {
                 self::ensure_suppliers_table();
                 self::ensure_products_supplier_column();
+                self::ensure_products_etat_materiel_column();
             } catch (\Throwable $exception) {
                 if (function_exists('error_log')) {
                     error_log('[Sempa] Schema setup error: ' . $exception->getMessage());
@@ -106,6 +107,45 @@ if (!class_exists('Sempa_Stocks_Schema_Setup')) {
             $db->query($sql_index); // Index creation can fail if it already exists, don't check result
 
             error_log('[Sempa] Supplier column added to products table successfully');
+            return true;
+        }
+
+        /**
+         * Add etat_materiel column to products table if it doesn't exist
+         * This column stores the material state: 'neuf' (new) or 'reconditionné' (refurbished)
+         */
+        private static function ensure_products_etat_materiel_column()
+        {
+            $db = Sempa_Stocks_DB::instance();
+
+            if (!($db instanceof \wpdb) || empty($db->dbh)) {
+                return false;
+            }
+
+            $products_table = Sempa_Stocks_DB::table('stocks_sempa');
+            if (empty($products_table)) {
+                return false;
+            }
+
+            // Check if etat_materiel column already exists
+            $columns = $db->get_results("SHOW COLUMNS FROM " . Sempa_Stocks_DB::escape_identifier($products_table) . " LIKE 'etat_materiel'");
+
+            if (!empty($columns)) {
+                return true; // Column already exists
+            }
+
+            // Add etat_materiel column with ENUM type
+            $sql = "ALTER TABLE " . Sempa_Stocks_DB::escape_identifier($products_table) . "
+                    ADD COLUMN `etat_materiel` ENUM('neuf', 'reconditionné') DEFAULT 'neuf' COMMENT 'État du matériel (neuf ou reconditionné)' AFTER `supplier`";
+
+            $result = $db->query($sql);
+
+            if ($result === false) {
+                error_log('[Sempa] Failed to add etat_materiel column to products table: ' . $db->last_error);
+                return false;
+            }
+
+            error_log('[Sempa] Etat_materiel column added to products table successfully');
             return true;
         }
     }

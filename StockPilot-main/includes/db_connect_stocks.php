@@ -41,6 +41,7 @@ if (!class_exists('Sempa_Stocks_DB')) {
                 'document_pdf' => ['document_pdf', 'document', 'document_url', 'imageUrl'],
                 'ajoute_par' => ['ajoute_par', 'added_by', 'created_by'],
                 'prix_achat_total' => ['prix_achat_total', 'total_purchase'],
+                'etat_materiel' => ['etat_materiel', 'material_state', 'condition'],
             ],
             'mouvements_stocks_sempa' => [
                 'id' => ['id'],
@@ -77,23 +78,167 @@ if (!class_exists('Sempa_Stocks_DB')) {
         private static $table_cache = [];
         private static $columns_cache = [];
 
+        /**
+         * Configuration retry logic
+         */
+        private const MAX_RETRY_ATTEMPTS = 3;
+        private const INITIAL_RETRY_DELAY_MS = 1000; // 1 seconde
+        private const CONNECTION_TIMEOUT_SEC = 5;
+        private const ALERT_EMAIL = 'admin@sempa.fr';
+
+        /**
+         * Obtient l'instance de connexion à la base de données avec retry logic
+         *
+         * @return \wpdb Instance wpdb
+         */
         public static function instance()
         {
             if (self::$instance instanceof \wpdb) {
-                return self::$instance;
+                // Vérifier si la connexion existante est toujours valide
+                if (self::is_connected(self::$instance)) {
+                    return self::$instance;
+                }
+
+                // Connexion perdue, réinitialiser l'instance
+                error_log('[SEMPA DB] Connexion perdue, tentative de reconnexion...');
+                self::$instance = null;
             }
 
             require_once ABSPATH . 'wp-includes/wp-db.php';
 
-            $wpdb = new \wpdb(self::DB_USER, self::DB_PASSWORD, self::DB_NAME, self::DB_HOST, self::DB_PORT);
-            $wpdb->show_errors(false);
-            if (!empty($wpdb->dbh)) {
-                $wpdb->set_charset($wpdb->dbh, 'utf8mb4');
+            // Tentatives de connexion avec retry logic
+            $attempt = 0;
+            $last_error = '';
+
+            while ($attempt < self::MAX_RETRY_ATTEMPTS) {
+                $attempt++;
+
+                try {
+                    // Configurer le timeout de connexion
+                    ini_set('mysql.connect_timeout', (string) self::CONNECTION_TIMEOUT_SEC);
+                    ini_set('default_socket_timeout', (string) self::CONNECTION_TIMEOUT_SEC);
+
+                    // Créer la connexion
+                    $wpdb = new \wpdb(self::DB_USER, self::DB_PASSWORD, self::DB_NAME, self::DB_HOST, self::DB_PORT);
+                    $wpdb->show_errors(false);
+
+                    // Vérifier la connexion
+                    if (!empty($wpdb->dbh)) {
+                        $wpdb->set_charset($wpdb->dbh, 'utf8mb4');
+
+                        // Test de connexion avec une requête simple
+                        $result = $wpdb->query('SELECT 1');
+
+                        if ($result !== false) {
+                            self::$instance = $wpdb;
+
+                            if ($attempt > 1) {
+                                error_log("[SEMPA DB] ✓ Connexion réussie après $attempt tentatives");
+                            }
+
+                            return self::$instance;
+                        }
+                    }
+
+                    $last_error = $wpdb->last_error ?: 'Connexion échouée';
+                } catch (\Throwable $e) {
+                    $last_error = $e->getMessage();
+                }
+
+                // Échec de connexion
+                error_log("[SEMPA DB] ✗ Tentative $attempt/$" . self::MAX_RETRY_ATTEMPTS . " échouée : $last_error");
+
+                // Attendre avant de réessayer (délai exponentiel)
+                if ($attempt < self::MAX_RETRY_ATTEMPTS) {
+                    $delay_ms = self::INITIAL_RETRY_DELAY_MS * pow(2, $attempt - 1);
+                    usleep($delay_ms * 1000); // Convertir ms en µs
+                    error_log("[SEMPA DB] Attente de {$delay_ms}ms avant nouvelle tentative...");
+                }
             }
 
-            self::$instance = $wpdb;
+            // Toutes les tentatives ont échoué
+            error_log("[SEMPA DB] ✗✗✗ ÉCHEC : Impossible de se connecter après " . self::MAX_RETRY_ATTEMPTS . " tentatives");
+            error_log("[SEMPA DB] Dernière erreur : $last_error");
+
+            // Envoyer une alerte email
+            self::send_connection_alert($last_error, self::MAX_RETRY_ATTEMPTS);
+
+            // Créer une instance vide pour éviter les erreurs fatales
+            self::$instance = new \wpdb(self::DB_USER, self::DB_PASSWORD, self::DB_NAME, self::DB_HOST, self::DB_PORT);
 
             return self::$instance;
+        }
+
+        /**
+         * Vérifie si la connexion à la base de données est active
+         *
+         * @param \wpdb|null $wpdb Instance wpdb à tester (ou null pour tester l'instance courante)
+         * @return bool True si connecté
+         */
+        public static function is_connected($wpdb = null): bool
+        {
+            if ($wpdb === null) {
+                $wpdb = self::$instance;
+            }
+
+            if (!($wpdb instanceof \wpdb)) {
+                return false;
+            }
+
+            if (empty($wpdb->dbh)) {
+                return false;
+            }
+
+            // Tester avec une requête simple
+            try {
+                $result = $wpdb->query('SELECT 1');
+                return $result !== false;
+            } catch (\Throwable $e) {
+                error_log('[SEMPA DB] Test de connexion échoué : ' . $e->getMessage());
+                return false;
+            }
+        }
+
+        /**
+         * Envoie une alerte email en cas d'échec de connexion
+         *
+         * @param string $error Dernière erreur rencontrée
+         * @param int $attempts Nombre de tentatives
+         * @return bool True si l'email a été envoyé
+         */
+        private static function send_connection_alert(string $error, int $attempts): bool
+        {
+            $subject = '[SEMPA CRITIQUE] Échec de connexion à la base de données';
+
+            $message = "Une erreur critique s'est produite lors de la connexion à la base de données SEMPA.\n\n";
+            $message .= "Détails :\n";
+            $message .= "- Date : " . current_time('mysql') . "\n";
+            $message .= "- Host : " . self::DB_HOST . "\n";
+            $message .= "- Database : " . self::DB_NAME . "\n";
+            $message .= "- Tentatives : $attempts\n";
+            $message .= "- Dernière erreur : $error\n\n";
+
+            $message .= "Actions recommandées :\n";
+            $message .= "1. Vérifier que le serveur MySQL est en ligne\n";
+            $message .= "2. Vérifier les credentials de connexion\n";
+            $message .= "3. Vérifier les règles de firewall\n";
+            $message .= "4. Consulter les logs MySQL : /var/log/mysql/error.log\n";
+            $message .= "5. Contacter l'hébergeur si le problème persiste\n\n";
+
+            $message .= "URL du site : " . home_url() . "\n";
+            $message .= "Healthcheck : " . home_url('/wp-json/sempa/v1/health') . "\n";
+
+            $headers = ['Content-Type: text/plain; charset=UTF-8'];
+
+            $sent = wp_mail(self::ALERT_EMAIL, $subject, $message, $headers);
+
+            if ($sent) {
+                error_log('[SEMPA DB] Alerte email envoyée à ' . self::ALERT_EMAIL);
+            } else {
+                error_log('[SEMPA DB] ERREUR : Impossible d\'envoyer l\'alerte email');
+            }
+
+            return $sent;
         }
 
         public static function table(string $name)
@@ -368,6 +513,26 @@ if (!class_exists('Sempa_Stocks_DB')) {
             self::$columns_cache[$table_key] = $columns;
 
             return $columns;
+        }
+
+        /**
+         * Retourne le host de la base de données
+         *
+         * @return string Host de la base de données
+         */
+        public static function get_host(): string
+        {
+            return self::DB_HOST;
+        }
+
+        /**
+         * Retourne le nom de la base de données
+         *
+         * @return string Nom de la base de données
+         */
+        public static function get_database(): string
+        {
+            return self::DB_NAME;
         }
     }
 }
