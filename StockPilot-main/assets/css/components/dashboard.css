@@ -1,0 +1,370 @@
+/**
+ * STYLES DASHBOARD
+ *
+ * Styles pour le dashboard avec métriques, graphiques et activité
+ */
+
+/* ============================================================================
+   LAYOUT DASHBOARD
+   ============================================================================ */
+
+.dashboard-container {
+  padding: var(--sp-spacing-xl);
+  max-width: 1800px;
+  margin: 0 auto;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--sp-spacing-xl);
+}
+
+.dashboard-header__title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--sp-text-primary);
+  margin: 0;
+}
+
+.dashboard-header__actions {
+  display: flex;
+  gap: var(--sp-spacing-md);
+  align-items: center;
+}
+
+/* ============================================================================
+   GRILLE MÉTRIQUES
+   ============================================================================ */
+
+.sp-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--sp-spacing-lg);
+  margin-bottom: var(--sp-spacing-xl);
+}
+
+/* ============================================================================
+   CARTE MÉTRIQUE
+   ============================================================================ */
+
+.sp-metric-card {
+  background: white;
+  border-radius: var(--sp-radius-lg);
+  padding: var(--sp-spacing-lg);
+  box-shadow: var(--sp-shadow-md);
+  transition: all var(--sp-transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.sp-metric-card:hover {
+  box-shadow: var(--sp-shadow-lg);
+  transform: translateY(-2px);
+}
+
+.sp-metric-card__header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-spacing-md);
+  margin-bottom: var(--sp-spacing-lg);
+}
+
+.sp-metric-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--sp-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sp-metric-card__icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.sp-metric-card__title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--sp-gray-600);
+  margin: 0;
+  line-height: 1.5;
+  flex: 1;
+}
+
+.sp-metric-card__body {
+  min-height: 60px;
+}
+
+.sp-metric-card__value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--sp-text-primary);
+  line-height: 1.2;
+  margin-bottom: var(--sp-spacing-sm);
+}
+
+.sp-metric-card__trend {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-spacing-xs);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sp-metric-card__trend svg {
+  width: 16px;
+  height: 16px;
+}
+
+.sp-trend--positive {
+  color: var(--sp-success-500);
+}
+
+.sp-trend--negative {
+  color: var(--sp-danger-500);
+}
+
+.sp-metric-card__period {
+  font-weight: 400;
+  color: var(--sp-gray-500);
+  margin-left: var(--sp-spacing-xs);
+}
+
+.sp-metric-card__loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60px;
+}
+
+/* ============================================================================
+   SECTION GRAPHIQUES
+   ============================================================================ */
+
+.dashboard-charts {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--sp-spacing-lg);
+  margin-bottom: var(--sp-spacing-xl);
+}
+
+@media (max-width: 1200px) {
+  .dashboard-charts {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chart-container {
+  background: white;
+  border-radius: var(--sp-radius-lg);
+  padding: var(--sp-spacing-lg);
+  box-shadow: var(--sp-shadow-md);
+}
+
+.chart-container__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--sp-spacing-lg);
+}
+
+.chart-container__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--sp-text-primary);
+  margin: 0;
+}
+
+.chart-container__body {
+  position: relative;
+  height: 300px;
+}
+
+.chart-container--large .chart-container__body {
+  height: 400px;
+}
+
+/* ============================================================================
+   SECTION ACTIVITÉ + ALERTES
+   ============================================================================ */
+
+.dashboard-sidebar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-spacing-lg);
+  margin-bottom: var(--sp-spacing-xl);
+}
+
+@media (max-width: 1200px) {
+  .dashboard-sidebar {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dashboard-panel {
+  background: white;
+  border-radius: var(--sp-radius-lg);
+  padding: var(--sp-spacing-lg);
+  box-shadow: var(--sp-shadow-md);
+}
+
+.dashboard-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--sp-spacing-lg);
+  padding-bottom: var(--sp-spacing-md);
+  border-bottom: 1px solid var(--sp-border-light);
+}
+
+.dashboard-panel__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--sp-text-primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-spacing-sm);
+}
+
+.dashboard-panel__title svg {
+  width: 20px;
+  height: 20px;
+  color: var(--sp-gray-500);
+}
+
+/* ============================================================================
+   ÉTAT VIDE
+   ============================================================================ */
+
+.sp-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-spacing-2xl);
+  text-align: center;
+  color: var(--sp-gray-400);
+}
+
+.sp-empty-state svg {
+  width: 48px;
+  height: 48px;
+  margin-bottom: var(--sp-spacing-md);
+  opacity: 0.5;
+}
+
+.sp-empty-state p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--sp-gray-500);
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: var(--sp-spacing-md);
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-spacing-md);
+  }
+
+  .sp-metrics-grid {
+    grid-template-columns: 1fr;
+    gap: var(--sp-spacing-md);
+  }
+
+  .dashboard-charts {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-sidebar {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-container__body {
+    height: 250px;
+  }
+}
+
+/* ============================================================================
+   ANIMATIONS
+   ============================================================================ */
+
+@keyframes sp-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sp-metric-card,
+.chart-container,
+.dashboard-panel {
+  animation: sp-fade-in 0.3s ease-out;
+}
+
+/* Délais progressifs pour animation cascade */
+.sp-metric-card:nth-child(1) { animation-delay: 0s; }
+.sp-metric-card:nth-child(2) { animation-delay: 0.05s; }
+.sp-metric-card:nth-child(3) { animation-delay: 0.1s; }
+.sp-metric-card:nth-child(4) { animation-delay: 0.15s; }
+
+/* ============================================================================
+   ACCESSIBILITÉ
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus visible pour navigation clavier */
+.sp-btn:focus-visible {
+  outline: 2px solid var(--sp-primary-500);
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+   THÈME SOMBRE
+   ============================================================================ */
+
+[data-theme="dark"] .sp-metric-card,
+[data-theme="dark"] .chart-container,
+[data-theme="dark"] .dashboard-panel {
+  background: var(--sp-gray-800);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .sp-metric-card__value,
+[data-theme="dark"] .chart-container__title,
+[data-theme="dark"] .dashboard-panel__title {
+  color: var(--sp-gray-50);
+}
+
+[data-theme="dark"] .sp-metric-card__title {
+  color: var(--sp-gray-400);
+}
+
+[data-theme="dark"] .dashboard-panel__header {
+  border-bottom-color: var(--sp-gray-700);
+}
