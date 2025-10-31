@@ -55,6 +55,13 @@ function sempa_stocks_enqueue_refonte_assets() {
         $version
     );
 
+    wp_enqueue_style(
+        'sp-dashboard',
+        $assets_url . '/assets/css/components/dashboard.css',
+        ['sp-variables'],
+        $version
+    );
+
     /* ========================================================================
        BIBLIOTHÈQUES EXTERNES
        ======================================================================== */
@@ -108,6 +115,24 @@ function sempa_stocks_enqueue_refonte_assets() {
         true
     );
 
+    // Composant MetricCard
+    wp_enqueue_script(
+        'sp-metric-card',
+        $assets_url . '/assets/js/components/MetricCard.js',
+        ['sp-loader'],
+        $version,
+        true
+    );
+
+    // Composant Chart (wrapper Chart.js)
+    wp_enqueue_script(
+        'sp-chart',
+        $assets_url . '/assets/js/components/Chart.js',
+        ['chartjs'],
+        $version,
+        true
+    );
+
     /* ========================================================================
        JAVASCRIPT - UTILITAIRES
        ======================================================================== */
@@ -117,6 +142,19 @@ function sempa_stocks_enqueue_refonte_assets() {
         'sp-api',
         $assets_url . '/assets/js/utils/api.js',
         [],
+        $version,
+        true
+    );
+
+    /* ========================================================================
+       JAVASCRIPT - MODULES
+       ======================================================================== */
+
+    // Module Dashboard
+    wp_enqueue_script(
+        'sp-dashboard',
+        $assets_url . '/assets/js/modules/dashboard.js',
+        ['sp-api', 'sp-metric-card', 'sp-chart', 'sp-loader'],
         $version,
         true
     );
