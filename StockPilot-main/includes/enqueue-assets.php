@@ -160,6 +160,19 @@ function sempa_stocks_enqueue_refonte_assets() {
     );
 
     /* ========================================================================
+       JAVASCRIPT - APPLICATION PRINCIPALE
+       ======================================================================== */
+
+    // Point d'entrée principal de l'application
+    wp_enqueue_script(
+        'sp-app',
+        $assets_url . '/assets/js/app.js',
+        ['sp-dashboard', 'lucide'],
+        $version,
+        true
+    );
+
+    /* ========================================================================
        INITIALISATION LUCIDE ICONS
        ======================================================================== */
 

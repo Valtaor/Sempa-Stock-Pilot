@@ -104,61 +104,76 @@ if ($current_user instanceof WP_User && $current_user->exists()) {
                         <div class="section-header">
                             <div>
                                 <p class="section-eyebrow"><?php esc_html_e('Vue d\'ensemble', 'sempa'); ?></p>
-                                <h2 id="stocks-dashboard-title"><?php esc_html_e('Métriques principales', 'sempa'); ?></h2>
+                                <h2 id="stocks-dashboard-title"><?php esc_html_e('Tableau de bord', 'sempa'); ?></h2>
                             </div>
-                            <div class="section-context">
-                                <span class="section-context__badge"><?php esc_html_e('Données en temps réel', 'sempa'); ?></span>
+                            <div class="section-actions">
+                                <button type="button" id="btn-refresh-dashboard" class="button button--ghost" aria-label="<?php esc_attr_e('Actualiser le dashboard', 'sempa'); ?>">
+                                    <i data-lucide="refresh-cw"></i>
+                                    <?php esc_html_e('Actualiser', 'sempa'); ?>
+                                </button>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="toggle-auto-refresh" checked />
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-label"><?php esc_html_e('Rafraîchissement auto (60s)', 'sempa'); ?></span>
+                                </label>
                             </div>
                         </div>
-                        <div class="stockpilot-metrics" id="stocks-dashboard-cards">
-                            <article class="metric-card metric-card--products">
-                                <header>
-                                    <span class="metric-card__title"><?php esc_html_e('Total produits', 'sempa'); ?></span>
-                                    <span class="metric-card__icon" aria-hidden="true"></span>
-                                </header>
-                                <p class="metric-card__value" data-dashboard="produits">0</p>
-                                <p class="metric-card__hint"><?php esc_html_e('Catalogue actif', 'sempa'); ?></p>
-                            </article>
-                            <article class="metric-card metric-card--value">
-                                <header>
-                                    <span class="metric-card__title"><?php esc_html_e('Valeur du stock', 'sempa'); ?></span>
-                                    <span class="metric-card__icon" aria-hidden="true"></span>
-                                </header>
-                                <p class="metric-card__value" data-dashboard="valeur">0 €</p>
-                                <p class="metric-card__hint"><?php esc_html_e('Estimation achat', 'sempa'); ?></p>
-                            </article>
-                            <article class="metric-card metric-card--alerts">
-                                <header>
-                                    <span class="metric-card__title"><?php esc_html_e('Alertes stock', 'sempa'); ?></span>
-                                    <span class="metric-card__icon" aria-hidden="true"></span>
-                                </header>
-                                <p class="metric-card__value" data-dashboard="alertes">0</p>
-                                <p class="metric-card__hint"><?php esc_html_e('À traiter rapidement', 'sempa'); ?></p>
-                            </article>
-                            <article class="metric-card metric-card--movements">
-                                <header>
-                                    <span class="metric-card__title"><?php esc_html_e('Mouvements', 'sempa'); ?></span>
-                                    <span class="metric-card__icon" aria-hidden="true"></span>
-                                </header>
-                                <p class="metric-card__value" data-dashboard="mouvements">0</p>
-                                <p class="metric-card__hint"><?php esc_html_e('7 derniers jours', 'sempa'); ?></p>
-                            </article>
+
+                        <!-- Métriques principales -->
+                        <div id="dashboard-metrics"></div>
+
+                        <!-- Graphiques -->
+                        <div class="sp-dashboard-charts">
+                            <div class="sp-chart-container">
+                                <div class="sp-chart-header">
+                                    <h3><?php esc_html_e('Évolution de la valeur du stock', 'sempa'); ?></h3>
+                                    <span class="sp-chart-period"><?php esc_html_e('30 derniers jours', 'sempa'); ?></span>
+                                </div>
+                                <div class="sp-chart-canvas-wrapper">
+                                    <canvas id="chart-stock-value"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="sp-chart-container">
+                                <div class="sp-chart-header">
+                                    <h3><?php esc_html_e('Mouvements de stock', 'sempa'); ?></h3>
+                                    <span class="sp-chart-period"><?php esc_html_e('7 derniers jours', 'sempa'); ?></span>
+                                </div>
+                                <div class="sp-chart-canvas-wrapper">
+                                    <canvas id="chart-movements"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="sp-chart-container">
+                                <div class="sp-chart-header">
+                                    <h3><?php esc_html_e('Répartition par catégories', 'sempa'); ?></h3>
+                                    <span class="sp-chart-period"><?php esc_html_e('Distribution actuelle', 'sempa'); ?></span>
+                                </div>
+                                <div class="sp-chart-canvas-wrapper">
+                                    <canvas id="chart-categories"></canvas>
+                                </div>
+                            </div>
                         </div>
-                        <div class="stockpilot-panels">
-                            <article class="panel panel--alerts" aria-labelledby="stockpilot-alerts-title">
-                                <div class="panel__header">
-                                    <h3 id="stockpilot-alerts-title"><?php esc_html_e('Alertes nécessitant attention', 'sempa'); ?></h3>
-                                    <span class="panel__badge panel__badge--urgent"><?php esc_html_e('Urgent', 'sempa'); ?></span>
+
+                        <!-- Activité et alertes -->
+                        <div class="sp-dashboard-panels">
+                            <div class="sp-panel">
+                                <div class="sp-panel__header">
+                                    <h3><?php esc_html_e('Activité récente', 'sempa'); ?></h3>
                                 </div>
-                                <ul id="stocks-alerts" class="alerts-list"></ul>
-                            </article>
-                            <article class="panel panel--recent" aria-labelledby="stockpilot-recent-title">
-                                <div class="panel__header">
-                                    <h3 id="stockpilot-recent-title"><?php esc_html_e('Mouvements récents', 'sempa'); ?></h3>
-                                    <span class="panel__badge"><?php esc_html_e('Timeline', 'sempa'); ?></span>
+                                <div class="sp-panel__body">
+                                    <div id="activity-feed"></div>
                                 </div>
-                                <ul id="stocks-recent" class="recent-list"></ul>
-                            </article>
+                            </div>
+
+                            <div class="sp-panel">
+                                <div class="sp-panel__header">
+                                    <h3><?php esc_html_e('Alertes', 'sempa'); ?></h3>
+                                </div>
+                                <div class="sp-panel__body">
+                                    <div id="alerts-panel"></div>
+                                </div>
+                            </div>
                         </div>
                     </section>
 
