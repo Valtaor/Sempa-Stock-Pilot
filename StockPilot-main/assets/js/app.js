@@ -177,13 +177,15 @@ class StockPilotApp {
       return;
     }
 
-    // Ne pas réinitialiser si déjà fait
-    if (window.productsModule.initialized) {
-      console.log('📦 Module Products déjà initialisé');
-      return;
-    }
-
     try {
+      // Si déjà initialisé, juste afficher les produits
+      if (window.productsModule.initialized) {
+        console.log('📦 Module Products déjà initialisé, affichage des produits...');
+        window.productsModule.renderProducts();
+        return;
+      }
+
+      // Sinon, initialiser complètement
       await window.productsModule.init();
       console.log('✅ Module Products initialisé');
     } catch (error) {
