@@ -18,8 +18,8 @@ function sempa_stocks_enqueue_refonte_assets() {
         return;
     }
 
-    $version = '1.0.0'; // Version pour cache busting
-    $assets_url = get_template_directory_uri();
+    $version = time(); // Version pour cache busting (utilise timestamp pour forcer rechargement)
+    $assets_url = get_stylesheet_directory_uri(); // Thème child
 
     /* ========================================================================
        CSS
