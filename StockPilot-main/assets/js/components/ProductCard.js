@@ -157,11 +157,6 @@ class ProductCard {
       </div>
     `;
 
-    // Initialiser les icônes Lucide
-    if (window.lucide) {
-      lucide.createIcons({ icons: card.querySelectorAll('[data-lucide]') });
-    }
-
     // Attacher les event listeners
     this.attachEventListeners(card, product, { onEdit, onDuplicate, onDelete });
 
@@ -281,9 +276,6 @@ class ProductCard {
           <p>Aucun produit trouvé</p>
         </div>
       `;
-      if (window.lucide) {
-        lucide.createIcons({ icons: grid.querySelectorAll('[data-lucide]') });
-      }
       return grid;
     }
 
