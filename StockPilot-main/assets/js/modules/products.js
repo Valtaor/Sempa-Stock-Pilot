@@ -32,6 +32,9 @@ class ProductsModule {
     console.log('📦 Initialisation du module Products...');
 
     try {
+      // Vérifier et réparer le conteneur si nécessaire
+      this.ensureContainer();
+
       // Charger les produits
       await this.loadProducts();
 
@@ -46,6 +49,79 @@ class ProductsModule {
     } catch (error) {
       console.error('❌ Erreur initialisation Products:', error);
       this.showError('Erreur lors du chargement des produits');
+    }
+  }
+
+  /**
+   * Vérifie que le conteneur existe et le crée si nécessaire
+   */
+  ensureContainer() {
+    let container = document.getElementById('products-grid-container');
+
+    if (container) {
+      console.log('✅ Conteneur products-grid-container présent');
+      return;
+    }
+
+    console.warn('⚠️ Conteneur products-grid-container manquant, création automatique...');
+
+    // Trouver la vue produits
+    const viewProducts = document.getElementById('view-products');
+    if (!viewProducts) {
+      console.error('❌ Impossible de trouver view-products');
+      return;
+    }
+
+    // Trouver la toolbar
+    const toolbar = viewProducts.querySelector('.products-toolbar');
+    if (!toolbar) {
+      console.error('❌ Impossible de trouver products-toolbar');
+      return;
+    }
+
+    // Créer le conteneur
+    container = document.createElement('div');
+    container.id = 'products-grid-container';
+    container.innerHTML = `
+      <div class="sp-empty-state">
+        <i data-lucide="loader"></i>
+        <p>Initialisation...</p>
+      </div>
+    `;
+
+    // Insérer après la toolbar
+    toolbar.insertAdjacentElement('afterend', container);
+    console.log('✅ Conteneur products-grid-container créé');
+
+    // Créer aussi la pagination si manquante
+    let pagination = viewProducts.querySelector('.products-pagination');
+    if (!pagination) {
+      pagination = document.createElement('div');
+      pagination.className = 'products-pagination';
+      pagination.setAttribute('role', 'group');
+      pagination.setAttribute('aria-label', 'Pagination des produits');
+      pagination.innerHTML = `
+        <div class="pagination-info">
+          <label for="products-per-page">Afficher</label>
+          <select id="products-per-page">
+            <option value="12">12</option>
+            <option value="24" selected>24</option>
+            <option value="48">48</option>
+            <option value="all">Tous</option>
+          </select>
+          <span>par page</span>
+        </div>
+        <div class="pagination-status">
+          <span id="products-count-info">Chargement...</span>
+        </div>
+        <div class="pagination-controls">
+          <button type="button" id="products-prev-page" class="button button--ghost" disabled>Précédent</button>
+          <span id="products-page-info" class="pagination-page-info">Page 1 sur 1</span>
+          <button type="button" id="products-next-page" class="button button--ghost" disabled>Suivant</button>
+        </div>
+      `;
+      container.insertAdjacentElement('afterend', pagination);
+      console.log('✅ Pagination créée');
     }
   }
 
