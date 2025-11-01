@@ -789,6 +789,7 @@ final class Sempa_Stocks_App
         $allowed = apply_filters('sempa_stock_allowed_emails', [
             'victorfaucher@sempa.fr',
             'jean-baptiste@sempa.fr',
+            'valerie@sempa.fr',
         ]);
 
         $allowed = array_map('strtolower', $allowed);

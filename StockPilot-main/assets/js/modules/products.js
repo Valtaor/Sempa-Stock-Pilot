@@ -57,7 +57,7 @@ class ProductsModule {
 
     try {
       const response = await api.getProducts();
-      this.products = response || [];
+      this.products = response.products || [];
       this.applyFilters();
       console.log(`✅ ${this.products.length} produits chargés`);
     } catch (error) {
