@@ -210,13 +210,22 @@ if ($current_user instanceof WP_User && $current_user->exists()) {
                                 <button type="button" class="button button--ghost" id="stocks-clear-filters"><?php esc_html_e('Réinitialiser', 'sempa'); ?></button>
                             </div>
                         </div>
+                        <!-- Grille de produits (mode carte) -->
+                        <div id="products-grid-container">
+                            <div class="sp-empty-state">
+                                <i data-lucide="loader"></i>
+                                <p><?php esc_html_e('Chargement des produits...', 'sempa'); ?></p>
+                            </div>
+                        </div>
+
+                        <!-- Pagination -->
                         <div class="products-pagination" role="group" aria-label="<?php esc_attr_e('Pagination des produits', 'sempa'); ?>">
                             <div class="pagination-info">
                                 <label for="products-per-page"><?php esc_html_e('Afficher', 'sempa'); ?></label>
                                 <select id="products-per-page">
-                                    <option value="25">25</option>
-                                    <option value="50" selected>50</option>
-                                    <option value="100">100</option>
+                                    <option value="12">12</option>
+                                    <option value="24" selected>24</option>
+                                    <option value="48">48</option>
                                     <option value="all"><?php esc_html_e('Tous', 'sempa'); ?></option>
                                 </select>
                                 <span><?php esc_html_e('par page', 'sempa'); ?></span>
@@ -229,24 +238,6 @@ if ($current_user instanceof WP_User && $current_user->exists()) {
                                 <span id="products-page-info" class="pagination-page-info"><?php esc_html_e('Page 1 sur 1', 'sempa'); ?></span>
                                 <button type="button" id="products-next-page" class="button button--ghost" disabled><?php esc_html_e('Suivant', 'sempa'); ?></button>
                             </div>
-                        </div>
-                        <div class="table-wrapper table-wrapper--elevated">
-                            <table class="stocks-table stocks-table--products" id="stocks-products-table">
-                                <thead>
-                                    <tr>
-                                        <th scope="col"><?php esc_html_e('Produit', 'sempa'); ?></th>
-                                        <th scope="col"><?php esc_html_e('Référence', 'sempa'); ?></th>
-                                        <th scope="col"><?php esc_html_e('Stock', 'sempa'); ?></th>
-                                        <th scope="col"><?php esc_html_e('Statut', 'sempa'); ?></th>
-                                        <th scope="col" class="actions">&nbsp;</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td colspan="5" class="empty"><?php esc_html_e('Chargement des produits…', 'sempa'); ?></td>
-                                    </tr>
-                                </tbody>
-                            </table>
                         </div>
                     </section>
 

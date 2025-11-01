@@ -116,8 +116,7 @@ class StockPilotApp {
         await this.initDashboard();
         break;
       case 'products':
-        // TODO: Initialiser le module produits (Phase 4)
-        console.log('📦 Module produits à implémenter');
+        await this.initProducts();
         break;
       case 'movements':
         // TODO: Initialiser le module mouvements (Phase 5)
@@ -148,6 +147,23 @@ class StockPilotApp {
       console.log('✅ Dashboard initialisé');
     } catch (error) {
       console.error('❌ Erreur initialisation dashboard:', error);
+    }
+  }
+
+  /**
+   * Initialise le module products
+   */
+  async initProducts() {
+    if (!window.productsModule) {
+      console.error('❌ Module products non disponible');
+      return;
+    }
+
+    try {
+      await window.productsModule.init();
+      console.log('✅ Module Products initialisé');
+    } catch (error) {
+      console.error('❌ Erreur initialisation products:', error);
     }
   }
 
