@@ -178,9 +178,11 @@ class StockPilotApp {
     }
 
     try {
-      // Si déjà initialisé, juste afficher les produits
+      // Si déjà initialisé, vérifier le conteneur et afficher les produits
       if (window.productsModule.initialized) {
         console.log('📦 Module Products déjà initialisé, affichage des produits...');
+        // Vérifier et réparer le conteneur si nécessaire
+        window.productsModule.ensureContainer();
         window.productsModule.renderProducts();
         return;
       }
