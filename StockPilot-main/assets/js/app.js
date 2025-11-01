@@ -29,6 +29,9 @@ class StockPilotApp {
       // Initialiser la navigation entre vues
       this.initNavigation();
 
+      // Afficher la vue par défaut (dashboard) et cacher les autres
+      this.initializeViews();
+
       // Initialiser le module dashboard
       await this.initDashboard();
 
@@ -37,6 +40,21 @@ class StockPilotApp {
     } catch (error) {
       console.error('❌ Erreur initialisation StockPilot:', error);
     }
+  }
+
+  /**
+   * Initialise l'affichage des vues (affiche dashboard, cache les autres)
+   */
+  initializeViews() {
+    const allViews = document.querySelectorAll('.main-view');
+    allViews.forEach(view => {
+      if (view.id === 'view-dashboard') {
+        view.style.display = 'block';
+      } else {
+        view.style.display = 'none';
+      }
+    });
+    console.log('✅ Vues initialisées (dashboard visible)');
   }
 
   /**
@@ -156,6 +174,12 @@ class StockPilotApp {
   async initProducts() {
     if (!window.productsModule) {
       console.error('❌ Module products non disponible');
+      return;
+    }
+
+    // Ne pas réinitialiser si déjà fait
+    if (window.productsModule.initialized) {
+      console.log('📦 Module Products déjà initialisé');
       return;
     }
 
