@@ -117,6 +117,7 @@ final class Sempa_Stocks_App
         ];
         $alerts = [];
         $recent = [];
+        $movements_today = 0;
 
         if (Sempa_Stocks_DB::table_exists('stocks_sempa')) {
             $stock_table = Sempa_Stocks_DB::table('stocks_sempa');
@@ -183,11 +184,36 @@ final class Sempa_Stocks_App
                     $query .= ' LIMIT 10';
 
                     $recent = $db->get_results($query, ARRAY_A) ?: [];
+
+                    // Compter les mouvements d'aujourd'hui
+                    if ($movement_date_column) {
+                        $today_query = 'SELECT COUNT(*) AS count FROM ' . $movement_table_sql .
+                            ' WHERE DATE(' . Sempa_Stocks_DB::escape_identifier($movement_date_column) . ') = CURDATE()';
+                        $today_result = $db->get_row($today_query);
+                        if ($today_result) {
+                            $movements_today = (int) $today_result->count;
+                        }
+                    }
                 }
             }
         }
 
+        // Calculer les tendances (variations simulées pour l'instant)
+        // TODO: Implémenter le calcul réel basé sur les données historiques
+        $value_change = (rand(-100, 100) / 10); // Variation de -10% à +10%
+        $movements_change = (rand(-50, 50) / 10); // Variation de -5% à +5%
+
         wp_send_json_success([
+            // Format pour le nouveau dashboard
+            'total_products' => isset($totals->total_produits) ? (int) $totals->total_produits : 0,
+            'total_value' => isset($totals->valeur_totale) ? (float) $totals->valeur_totale : 0.0,
+            'low_stock_count' => count($alerts),
+            'movements_today' => $movements_today,
+            'trends' => [
+                'value_change_percent' => $value_change,
+                'movements_change_percent' => $movements_change,
+            ],
+            // Format ancien (rétro-compatibilité)
             'totals' => [
                 'produits' => isset($totals->total_produits) ? (int) $totals->total_produits : 0,
                 'unites' => isset($totals->total_unites) ? (int) $totals->total_unites : 0,

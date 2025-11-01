@@ -62,6 +62,13 @@ function sempa_stocks_enqueue_refonte_assets() {
         $version
     );
 
+    wp_enqueue_style(
+        'sp-product-card',
+        $assets_url . '/assets/css/components/product-card.css',
+        ['sp-variables'],
+        $version
+    );
+
     /* ========================================================================
        BIBLIOTHÈQUES EXTERNES
        ======================================================================== */
@@ -133,6 +140,15 @@ function sempa_stocks_enqueue_refonte_assets() {
         true
     );
 
+    // Composant ProductCard
+    wp_enqueue_script(
+        'sp-product-card',
+        $assets_url . '/assets/js/components/ProductCard.js',
+        ['sp-badge'],
+        $version,
+        true
+    );
+
     /* ========================================================================
        JAVASCRIPT - UTILITAIRES
        ======================================================================== */
@@ -155,6 +171,28 @@ function sempa_stocks_enqueue_refonte_assets() {
         'sp-dashboard',
         $assets_url . '/assets/js/modules/dashboard.js',
         ['sp-api', 'sp-metric-card', 'sp-chart', 'sp-loader'],
+        $version,
+        true
+    );
+
+    // Module Products
+    wp_enqueue_script(
+        'sp-products',
+        $assets_url . '/assets/js/modules/products.js',
+        ['sp-api', 'sp-product-card', 'sp-loader'],
+        $version,
+        true
+    );
+
+    /* ========================================================================
+       JAVASCRIPT - APPLICATION PRINCIPALE
+       ======================================================================== */
+
+    // Point d'entrée principal de l'application
+    wp_enqueue_script(
+        'sp-app',
+        $assets_url . '/assets/js/app.js',
+        ['sp-dashboard', 'sp-products', 'lucide'],
         $version,
         true
     );
